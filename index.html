@@ -529,8 +529,11 @@ function goToStep2(code) {
     document.getElementById('p-loading').style.display = 'none';
     const el = document.getElementById('p-fail');
     el.style.display = 'block';
-    el.textContent = `📌 품번 "${code}" — 크림에서 직접 검색해 주세요.`;
+    el.innerHTML = '<div style="margin-bottom:6px;font-size:12px;color:var(--sub);">📌 직접 입력된 품번</div>'
+      + '<div style="font-family:monospace;font-size:16px;color:var(--accent);font-weight:700;margin-bottom:4px;">' + code + '</div>'
+      + '<div style="font-size:11px;color:var(--sub);">품번으로 크림에서 검색해 드릴게요</div>';
     currentKreamKeyword = code;
+    currentProductName = code;
   }
 
   setTimeout(() => document.getElementById('card-kream').scrollIntoView({ behavior:'smooth', block:'start' }), 100);
@@ -580,8 +583,11 @@ function showProductFail(msg) {
   document.getElementById('p-loading').style.display = 'none';
   const el = document.getElementById('p-fail');
   el.style.display = 'block';
-  el.textContent = '⚠️ ' + msg;
+  el.innerHTML = '<div style="margin-bottom:6px;font-size:12px;color:var(--sub);">⚠️ 상품DB 미등록 상품이에요</div>'
+    + '<div style="font-family:monospace;font-size:16px;color:var(--accent);font-weight:700;margin-bottom:4px;">' + currentCode + '</div>'
+    + '<div style="font-size:11px;color:var(--sub);">바코드 번호로 크림에서 검색해 드릴게요</div>';
   currentKreamKeyword = currentCode;
+  currentProductName = currentCode;
 }
 
 function openKream() {
