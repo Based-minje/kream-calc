@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0d0d0d">
+<title>KREAMCALC</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+:root {
+  --bg: #0d0d0d;
+  --card: #181818;
+  --card2: #222;
+  --line: #2c2c2c;
+  --accent: #d4f53c;
+  --red: #ff4f4f;
+  --text: #f2f2f2;
+  --sub: #888;
+  --r: 14px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px;
+  overflow-x: hidden;
+}
+
+/* ── HEADER ── */
+.header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 200;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+  padding: 14px 20px;
+  padding-top: calc(14px + env(safe-area-inset-top, 0px));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: 22px;
+  letter-spacing: 1px;
+  color: var(--accent);
+}
+.logo em { color: var(--text); font-style: normal; }
+
+.header-badge {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--sub);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 4px 10px;
+}
+
+/* ── SCROLL BODY ── */
+.body {
+  padding-top: calc(54px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(72px + var(--safe-bottom));
+}
+
+/* ── TABS ── */
+.tab { display: none; padding: 16px; }
+.tab.active { display: block; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.card-head {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-icon {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  background: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.card-title { font-size: 13px; font-weight: 700; }
+.card-sub { font-size: 11px; color: var(--sub); margin-top: 1px; }
+
+/* ── CAMERA ── */
+#cam-wrap {
+  position: relative;
+  width: 100%;
+  background: #000;
+  display: none;
+  overflow: hidden;
+}
+#cam-wrap.on { display: block; }
+
+#cam-video {
+  width: 100%;
+  display: block;
+  max-height: 280px;
+  object-fit: cover;
+}
+
+#cam-canvas { display: none; }
+
+.cam-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.scan-box {
+  width: 70%;
+  aspect-ratio: 2.8/1;
+  position: relative;
+  border-radius: 6px;
+  box-shadow: 0 0 0 1000px rgba(0,0,0,0.5);
+}
+
+/* corner brackets */
+.scan-box::before, .scan-box::after,
+.scan-box .c2::before, .scan-box .c2::after {
+  content: '';
+  position: absolute;
+  width: 18px; height: 18px;
+  border-color: var(--accent);
+  border-style: solid;
+}
+.scan-box::before { top:0; left:0; border-width: 2px 0 0 2px; border-radius: 4px 0 0 0; }
+.scan-box::after  { top:0; right:0; border-width: 2px 2px 0 0; border-radius: 0 4px 0 0; }
+.scan-box .c2::before { bottom:0; left:0; border-width: 0 0 2px 2px; border-radius: 0 0 0 4px; }
+.scan-box .c2::after  { bottom:0; right:0; border-width: 0 2px 2px 0; border-radius: 0 0 4px 0; }
+
+.scan-line {
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent), 0 0 20px var(--accent);
+  animation: sweep 1.8s ease-in-out infinite;
+  top: 0;
+}
+@keyframes sweep {
+  0%   { top: 0%; }
+  50%  { top: 100%; }
+  100% { top: 0%; }
+}
+
+.scan-tip {
+  margin-top: 14px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.75);
+  background: rgba(0,0,0,0.6);
+  padding: 4px 14px;
+  border-radius: 20px;
+}
+
+/* ── SCAN PLACEHOLDER ── */
+.scan-idle { padding: 20px 16px; }
+
+.btn {
+  width: 100%;
+  padding: 15px;
+  border-radius: 12px;
+  border: none;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: opacity .15s, transform .1s;
+  letter-spacing: .3px;
+}
+.btn:active { transform: scale(.97); opacity: .88; }
+.btn-primary { background: var(--accent); color: #000; }
+.btn-ghost   { background: var(--card2); color: var(--text); border: 1px solid var(--line); }
+.btn-red     { background: rgba(255,79,79,.12); color: var(--red); border: 1px solid rgba(255,79,79,.3); }
+.btn-outline { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+
+.divider {
+  display: flex; align-items: center; gap: 10px;
+  margin: 14px 0;
+}
+.divider::before, .divider::after { content:''; flex:1; height:1px; background: var(--line); }
+.divider span { font-size: 11px; color: var(--sub); white-space: nowrap; }
+
+/* ── MANUAL INPUT ── */
+.input-group {
+  display: flex;
+  gap: 8px;
+}
+
+.text-input {
+  flex: 1;
+  padding: 14px 14px;
+  background: var(--card2);
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 15px;
+  outline: none;
+  transition: border-color .2s;
+}
+.text-input:focus { border-color: var(--accent); }
+.text-input::placeholder { color: #444; font-size: 13px; }
+
+.btn-arrow {
+  padding: 14px 18px;
+  background: var(--card2);
+  border: 1.5px solid var(--accent);
+  border-radius: 12px;
+  color: var(--accent);
+  font-size: 18px;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+  flex-shrink: 0;
+}
+.btn-arrow:active { background: var(--accent); color: #000; }
+
+/* ── RESULT CARD ── */
+#result-card { display: none; }
+#result-card.on { display: block; }
+
+.result-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--card2);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-family: monospace;
+  color: var(--accent);
+  letter-spacing: .5px;
+}
+
+/* ── PRICE INPUT ── */
+.price-block { padding: 16px; border-bottom: 1px solid var(--line); }
+.price-label { font-size: 10px; color: var(--sub); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 8px; }
+
+.price-row {
+  display: flex;
+  align-items: center;
+  background: var(--card2);
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  padding: 0 14px;
+  gap: 8px;
+  transition: border-color .2s;
+}
+.price-row:focus-within { border-color: var(--accent); }
+
+.price-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 13px 0;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  text-align: right;
+  outline: none;
+}
+.price-row input::placeholder { color: #333; font-size: 18px; font-weight: 300; }
+.price-unit { font-size: 14px; color: var(--sub); flex-shrink: 0; }
+
+/* ── FEE TOGGLES ── */
+.fee-block { padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.fee-block-title { font-size: 10px; color: var(--sub); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 12px; }
+
+.fee-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  gap: 10px;
+}
+.fee-item + .fee-item { border-top: 1px solid var(--line); }
+
+.fee-info { flex: 1; min-width: 0; }
+.fee-name { font-size: 13px; font-weight: 500; }
+.fee-desc { font-size: 11px; color: var(--sub); margin-top: 1px; }
+
+.fee-amount { font-size: 13px; color: var(--sub); min-width: 72px; text-align: right; flex-shrink: 0; }
+.fee-amount.active { color: var(--red); }
+
+/* toggle switch */
+.toggle {
+  width: 40px; height: 22px;
+  border-radius: 11px;
+  background: var(--line);
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: background .2s;
+  flex-shrink: 0;
+}
+.toggle.on { background: var(--accent); }
+.toggle::after {
+  content: '';
+  position: absolute;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  top: 3px; left: 3px;
+  transition: transform .2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,.3);
+}
+.toggle.on::after { transform: translateX(18px); }
+
+/* ── RESULT ROWS ── */
+.result-block { padding: 16px; }
+
+.rrow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+.rrow:last-child { border-bottom: none; }
+.rrow .rl { color: var(--sub); }
+.rrow .rv { font-weight: 500; }
+.rrow .rv.minus { color: var(--red); }
+.rrow .rv.plus  { color: var(--accent); }
+
+.profit-box {
+  margin-top: 14px;
+  background: var(--card2);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.profit-label { font-size: 12px; color: var(--sub); font-weight: 500; }
+.profit-val {
+  font-family: 'Black Han Sans', sans-serif;
+  font-size: 28px;
+  letter-spacing: .5px;
+}
+.profit-val.pos { color: var(--accent); }
+.profit-val.neg { color: var(--red); }
+.profit-val.zero { color: var(--sub); }
+
+.margin-badge {
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  margin-top: 4px;
+  display: inline-block;
+}
+.margin-badge.pos { background: rgba(212,245,60,.12); color: var(--accent); }
+.margin-badge.neg { background: rgba(255,79,79,.12); color: var(--red); }
+
+.kream-link-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 15px;
+  background: transparent;
+  border: 1.5px solid var(--accent);
+  border-radius: 12px;
+  color: var(--accent);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: background .15s, color .15s;
+}
+.kream-link-btn:active { background: var(--accent); color: #000; }
+
+/* ── HISTORY ── */
+.empty-state {
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--sub);
+}
+.empty-icon { font-size: 44px; margin-bottom: 12px; }
+.empty-title { font-size: 14px; margin-bottom: 6px; }
+.empty-sub { font-size: 12px; color: #555; }
+
+.hist-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: border-color .2s;
+  gap: 12px;
+}
+.hist-item:active { border-color: var(--accent); }
+.hist-code { font-family: monospace; font-size: 14px; color: var(--accent); }
+.hist-meta { font-size: 11px; color: var(--sub); margin-top: 3px; }
+
+.chip {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.chip.pos { background: rgba(212,245,60,.12); color: var(--accent); }
+.chip.neg { background: rgba(255,79,79,.12); color: var(--red); }
+.chip.zero{ background: var(--card2); color: var(--sub); }
+
+/* ── SETTINGS ── */
+.set-group { margin-bottom: 20px; }
+.set-group-title {
+  font-size: 10px; color: var(--sub);
+  text-transform: uppercase; letter-spacing: 1.2px;
+  margin-bottom: 10px; padding: 0 2px;
+}
+
+.set-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+
+.set-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+  gap: 12px;
+}
+.set-row:last-child { border-bottom: none; }
+.set-lbl { font-size: 13px; font-weight: 500; }
+.set-lbl small { display: block; font-size: 11px; color: var(--sub); font-weight: 400; margin-top: 2px; }
+
+.set-input {
+  width: 80px;
+  padding: 7px 10px;
+  background: var(--card2);
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px;
+  text-align: right;
+  outline: none;
+  transition: border-color .2s;
+}
+.set-input:focus { border-color: var(--accent); }
+
+.set-select {
+  padding: 7px 10px;
+  background: var(--card2);
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 200;
+  background: rgba(13,13,13,.96);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid var(--line);
+  display: flex;
+  padding: 10px 16px;
+  padding-bottom: calc(10px + var(--safe-bottom));
+  gap: 8px;
+}
+
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 4px;
+  border-radius: 10px;
+  background: transparent;
+  border: none;
+  color: var(--sub);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.nav-item .ni { font-size: 20px; }
+.nav-item.active { background: rgba(212,245,60,.1); color: var(--accent); }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: calc(80px + var(--safe-bottom));
+  left: 50%; transform: translateX(-50%) translateY(10px);
+  background: #2a2a2a;
+  border: 1px solid var(--line);
+  border-radius: 30px;
+  padding: 10px 18px;
+  font-size: 13px;
+  white-space: nowrap;
+  z-index: 999;
+  opacity: 0;
+  transition: opacity .25s, transform .25s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── SCANNER NOT SUPPORTED ── */
+.unsupported-note {
+  background: rgba(255,79,79,.08);
+  border: 1px solid rgba(255,79,79,.2);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 12px;
+  color: #ff8080;
+  line-height: 1.6;
+  margin-bottom: 14px;
+}
+
+/* ── SPINNER ── */
+.spinner {
+  width: 16px; height: 16px;
+  border: 2px solid var(--line);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── PRODUCT INFO ── */
+.product-brand-chip {
+  display: inline-block;
+  padding: 2px 8px;
+  background: rgba(212,245,60,.1);
+  border: 1px solid rgba(212,245,60,.3);
+  border-radius: 20px;
+  font-size: 10px;
+  color: var(--accent);
+  letter-spacing: .5px;
+  margin-right: 6px;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(10px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.fade-up { animation: fadeUp .3s ease forwards; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">KREAM<em>CALC</em></div>
+  <div class="header-badge">리셀 수익기</div>
+</header>
+
+<div class="body">
+
+  <!-- ══ TAB: 스캔 ══ -->
+  <div class="tab active" id="tab-scan">
+
+    <!-- 스캔 카드 -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon">📷</div>
+        <div>
+          <div class="card-title">바코드 스캔</div>
+          <div class="card-sub">크롬 네이티브 인식 엔진 사용</div>
+        </div>
+      </div>
+
+      <!-- Camera view -->
+      <div id="cam-wrap">
+        <video id="cam-video" autoplay playsinline muted></video>
+        <canvas id="cam-canvas"></canvas>
+        <div class="cam-overlay">
+          <div class="scan-box">
+            <div class="c2"></div>
+            <div class="scan-line"></div>
+          </div>
+          <div class="scan-tip">바코드를 프레임 안에 맞춰주세요</div>
+        </div>
+      </div>
+
+      <div class="scan-idle" id="scan-idle">
+        <div id="unsupported-note" class="unsupported-note" style="display:none">
+          ⚠️ 이 브라우저는 네이티브 바코드 인식을 지원하지 않아요.<br>
+          크롬 최신 버전을 사용해 주세요.
+        </div>
+        <button class="btn btn-primary" id="btn-start" onclick="startScan()">
+          📷 카메라로 바코드 스캔
+        </button>
+        <div class="divider"><span>또는 직접 입력</span></div>
+        <div class="input-group">
+          <input class="text-input" id="manual-input"
+            placeholder="품번 입력 (예: JV6977)"
+            type="text" autocomplete="off" autocorrect="off"
+            autocapitalize="characters" spellcheck="false"
+            onkeydown="if(event.key==='Enter')doManual()">
+          <button class="btn-arrow" onclick="doManual()">→</button>
+        </div>
+      </div>
+
+      <div id="scan-controls" style="display:none; padding:12px 16px;">
+        <button class="btn btn-ghost" onclick="stopScan()">⏹ 스캔 중지</button>
+      </div>
+    </div>
+
+    <!-- 결과 카드 -->
+    <div class="card fade-up" id="result-card">
+      <div class="card-head" style="justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="card-icon">🧮</div>
+          <div class="card-title">수익 계산</div>
+        </div>
+        <div class="result-tag" id="tag-barcode">—</div>
+      </div>
+
+      <!-- 상품 정보 -->
+      <div id="product-info-wrap" style="display:none; padding:14px 16px; border-bottom:1px solid var(--line);">
+        <div id="product-loading" style="display:none; align-items:center; gap:8px; color:var(--sub); font-size:12px;">
+          <div class="spinner"></div><span>상품 정보 조회 중...</span>
+        </div>
+        <div id="product-found" style="display:none;">
+          <div style="font-size:10px; color:var(--sub); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">📦 상품 정보</div>
+          <div id="product-name" style="font-size:14px; font-weight:700; color:var(--text); line-height:1.4; margin-bottom:4px;"></div>
+          <div id="product-meta" style="font-size:11px; color:var(--sub);"></div>
+        </div>
+        <div id="product-notfound" style="display:none; font-size:12px; color:var(--sub);">
+          ⚠️ DB에서 찾지 못했어요. 품번을 직접 확인해 주세요.
+        </div>
+      </div>
+
+      <!-- 구매가 -->
+      <div class="price-block">
+        <div class="price-label">🏪 아울렛 구매가</div>
+        <div class="price-row">
+          <input type="number" id="buy-price" placeholder="0" inputmode="numeric" oninput="calc()">
+          <span class="price-unit">원</span>
+        </div>
+      </div>
+
+      <!-- 크림 즉판가 -->
+      <div class="price-block">
+        <div class="price-label">🔖 크림 즉판가 (직접 확인 후 입력)</div>
+        <div class="price-row">
+          <input type="number" id="sell-price" placeholder="0" inputmode="numeric" oninput="calc()">
+          <span class="price-unit">원</span>
+        </div>
+      </div>
+
+      <!-- 수수료 토글 -->
+      <div class="fee-block">
+        <div class="fee-block-title">수수료 항목</div>
+
+        <div class="fee-item">
+          <div class="fee-info">
+            <div class="fee-name">크림 판매 수수료</div>
+            <div class="fee-desc" id="fd-kream">판매가의 3.5%</div>
+          </div>
+          <div class="fee-amount" id="fa-kream">—</div>
+          <button class="toggle on" id="tog-kream" onclick="toggleFee('kream')"></button>
+        </div>
+
+        <div class="fee-item">
+          <div class="fee-info">
+            <div class="fee-name">정산 수수료</div>
+            <div class="fee-desc" id="fd-settle">판매가의 3%</div>
+          </div>
+          <div class="fee-amount" id="fa-settle">—</div>
+          <button class="toggle on" id="tog-settle" onclick="toggleFee('settle')"></button>
+        </div>
+
+        <div class="fee-item">
+          <div class="fee-info">
+            <div class="fee-name">배송비</div>
+            <div class="fee-desc" id="fd-ship">4,000원</div>
+          </div>
+          <div class="fee-amount" id="fa-ship">—</div>
+          <button class="toggle on" id="tog-ship" onclick="toggleFee('ship')"></button>
+        </div>
+      </div>
+
+      <!-- 계산 결과 -->
+      <div class="result-block">
+        <div class="rrow"><span class="rl">크림 즉판가</span><span class="rv" id="r-sell">—</span></div>
+        <div class="rrow"><span class="rl">판매 수수료</span><span class="rv minus" id="r-kfee">—</span></div>
+        <div class="rrow"><span class="rl">정산 수수료</span><span class="rv minus" id="r-sfee">—</span></div>
+        <div class="rrow"><span class="rl">배송비</span><span class="rv minus" id="r-ship">—</span></div>
+        <div class="rrow"><span class="rl">실수령액</span><span class="rv" id="r-net">—</span></div>
+        <div class="rrow"><span class="rl">아울렛 구매가</span><span class="rv minus" id="r-buy">—</span></div>
+
+        <div class="profit-box">
+          <div>
+            <div class="profit-label">💰 예상 순수익</div>
+            <div class="margin-badge zero" id="r-margin">—</div>
+          </div>
+          <div class="profit-val zero" id="r-profit">— 원</div>
+        </div>
+
+        <button class="kream-link-btn" onclick="openKream()">
+          🔗 크림에서 즉판가 확인
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /tab-scan -->
+
+  <!-- ══ TAB: 기록 ══ -->
+  <div class="tab" id="tab-history">
+    <div id="hist-list"></div>
+    <div id="hist-empty" class="empty-state">
+      <div class="empty-icon">📋</div>
+      <div class="empty-title">스캔 기록이 없어요</div>
+      <div class="empty-sub">바코드를 스캔하면 여기에 자동 저장돼요</div>
+    </div>
+  </div>
+
+  <!-- ══ TAB: 설정 ══ -->
+  <div class="tab" id="tab-settings">
+
+    <div class="set-group">
+      <div class="set-group-title">수수료 설정</div>
+      <div class="set-card">
+        <div class="set-row">
+          <label class="set-lbl">크림 판매 수수료<small>현재 일반등급 기준</small></label>
+          <div style="display:flex;align-items:center;gap:5px;">
+            <input class="set-input" id="s-kream" type="number" value="3.5" step="0.1" min="0" max="30" oninput="saveSettings()">
+            <span style="font-size:13px;color:var(--sub)">%</span>
+          </div>
+        </div>
+        <div class="set-row">
+          <label class="set-lbl">정산 수수료<small>일반적으로 3%</small></label>
+          <div style="display:flex;align-items:center;gap:5px;">
+            <input class="set-input" id="s-settle" type="number" value="3.0" step="0.1" min="0" max="30" oninput="saveSettings()">
+            <span style="font-size:13px;color:var(--sub)">%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="set-group">
+      <div class="set-group-title">배송비 설정</div>
+      <div class="set-card">
+        <div class="set-row">
+          <label class="set-lbl">기본 배송비<small>판매자 부담</small></label>
+          <select class="set-select" id="s-ship" onchange="saveSettings()">
+            <option value="3000">3,000원</option>
+            <option value="3500">3,500원</option>
+            <option value="4000" selected>4,000원</option>
+            <option value="5000">5,000원</option>
+            <option value="6000">6,000원</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="set-group">
+      <div class="set-group-title">데이터</div>
+      <div class="set-card">
+        <div class="set-row">
+          <label class="set-lbl">스캔 기록 초기화<small>저장된 모든 기록 삭제</small></label>
+          <button onclick="clearHistory()" style="padding:7px 14px;background:rgba(255,79,79,.1);border:1px solid rgba(255,79,79,.3);border-radius:8px;color:var(--red);font-size:12px;cursor:pointer;">삭제</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="set-group">
+      <div class="set-group-title">앱 정보</div>
+      <div class="set-card">
+        <div class="set-row">
+          <span class="set-lbl">버전</span>
+          <span style="font-size:13px;color:var(--sub)">v2.0</span>
+        </div>
+        <div class="set-row">
+          <span class="set-lbl" style="font-size:12px;color:var(--sub);font-weight:400">바코드 인식: Chrome BarcodeDetector API<br>크롬 최신버전 권장</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /tab-settings -->
+
+</div><!-- /body -->
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <button class="nav-item active" id="nav-scan" onclick="switchTab('scan')">
+    <span class="ni">📷</span>스캔
+  </button>
+  <button class="nav-item" id="nav-history" onclick="switchTab('history')">
+    <span class="ni">📋</span>기록
+  </button>
+  <button class="nav-item" id="nav-settings" onclick="switchTab('settings')">
+    <span class="ni">⚙️</span>설정
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ──
+let currentCode = '';
+let currentKreamKeyword = '';
+let stream = null;
+let scanLoop = null;
+let feeOn = { kream: true, settle: true, ship: true };
+let hist = JSON.parse(localStorage.getItem('kc_hist') || '[]');
+let cfg = JSON.parse(localStorage.getItem('kc_cfg') || '{}');
+cfg = Object.assign({ kream: 3.5, settle: 3.0, ship: 4000 }, cfg);
+
+// Apply saved settings to UI
+document.getElementById('s-kream').value = cfg.kream;
+document.getElementById('s-settle').value = cfg.settle;
+document.getElementById('s-ship').value = cfg.ship;
+updateFeeDesc();
+
+// Check BarcodeDetector support
+const supported = 'BarcodeDetector' in window;
+if (!supported) {
+  document.getElementById('unsupported-note').style.display = 'block';
+  document.getElementById('btn-start').disabled = true;
+  document.getElementById('btn-start').style.opacity = '.4';
+}
+
+// ── TAB SWITCH ──
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  if (name === 'history') renderHist();
+  if (name !== 'scan') stopScan();
+}
+
+// ── SCAN ──
+async function startScan() {
+  if (!supported) { toast('크롬 최신버전이 필요해요'); return; }
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
+    const video = document.getElementById('cam-video');
+    video.srcObject = stream;
+    await video.play();
+
+    document.getElementById('cam-wrap').classList.add('on');
+    document.getElementById('scan-idle').style.display = 'none';
+    document.getElementById('scan-controls').style.display = 'block';
+
+    const detector = new BarcodeDetector({
+      formats: ['ean_13','ean_8','code_128','code_39','upc_a','upc_e','itf','qr_code']
+    });
+
+    const canvas = document.getElementById('cam-canvas');
+    const ctx = canvas.getContext('2d');
+
+    scanLoop = setInterval(async () => {
+      if (video.readyState < 2) return;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0);
+      try {
+        const results = await detector.detect(canvas);
+        if (results.length > 0) {
+          const code = results[0].rawValue;
+          stopScan();
+          onCodeDetected(code);
+        }
+      } catch(e) {}
+    }, 300);
+
+  } catch(e) {
+    toast('카메라 권한을 허용해주세요');
+    stopScan();
+  }
+}
+
+function stopScan() {
+  if (scanLoop) { clearInterval(scanLoop); scanLoop = null; }
+  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+  document.getElementById('cam-wrap').classList.remove('on');
+  document.getElementById('scan-idle').style.display = 'block';
+  document.getElementById('scan-controls').style.display = 'none';
+}
+
+function onCodeDetected(code) {
+  toast('✅ 인식: ' + code);
+  loadCode(code);
+}
+
+function doManual() {
+  const v = document.getElementById('manual-input').value.trim().toUpperCase();
+  if (!v) { toast('품번을 입력해주세요'); return; }
+  document.getElementById('manual-input').value = '';
+  loadCode(v);
+}
+
+function loadCode(code) {
+  currentCode = code;
+  document.getElementById('tag-barcode').textContent = code;
+  document.getElementById('result-card').classList.add('on');
+  document.getElementById('buy-price').value = '';
+  document.getElementById('sell-price').value = '';
+  resetDisplay();
+  setTimeout(() => {
+    document.getElementById('result-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('buy-price').focus();
+  }, 100);
+
+  // 숫자로만 이루어진 경우 바코드 → UPCitemdb 조회
+  if (/^\d{8,14}$/.test(code)) {
+    lookupBarcode(code);
+  } else {
+    // 품번(영문+숫자)인 경우 DB 조회 없이 바로 크림 검색 안내
+    hideProductInfo();
+  }
+}
+
+async function lookupBarcode(barcode) {
+  const wrap = document.getElementById('product-info-wrap');
+  const loading = document.getElementById('product-loading');
+  const found = document.getElementById('product-found');
+  const notfound = document.getElementById('product-notfound');
+
+  wrap.style.display = 'block';
+  loading.style.display = 'flex';
+  found.style.display = 'none';
+  notfound.style.display = 'none';
+
+  try {
+    const res = await fetch(`https://api.upcitemdb.com/prod/trial/lookup?upc=${barcode}`);
+    const data = await res.json();
+
+    loading.style.display = 'none';
+
+    if (data.code === 'OK' && data.items && data.items.length > 0) {
+      const item = data.items[0];
+      const name = item.title || '';
+      const brand = item.brand || '';
+      const model = item.model || '';
+      const color = item.color || '';
+
+      document.getElementById('product-name').innerHTML =
+        (brand ? `<span class="product-brand-chip">${brand}</span>` : '') + name;
+
+      const metaParts = [];
+      if (model) metaParts.push(`모델: ${model}`);
+      if (color) metaParts.push(`색상: ${color}`);
+      document.getElementById('product-meta').textContent = metaParts.join(' · ');
+
+      found.style.display = 'block';
+
+      // 상품명으로 크림 검색 키워드 업데이트
+      const kreamKeyword = model || name || barcode;
+      currentKreamKeyword = kreamKeyword;
+
+      toast(`✅ ${brand ? brand + ' ' : ''}${name.slice(0, 20)}...`);
+    } else {
+      notfound.style.display = 'block';
+      currentKreamKeyword = barcode;
+    }
+  } catch(e) {
+    loading.style.display = 'none';
+    notfound.style.display = 'block';
+    currentKreamKeyword = barcode;
+  }
+}
+
+function hideProductInfo() {
+  document.getElementById('product-info-wrap').style.display = 'none';
+  currentKreamKeyword = currentCode;
+}
+
+// ── CALC ──
+function calc() {
+  const buy  = parseInt(document.getElementById('buy-price').value)  || 0;
+  const sell = parseInt(document.getElementById('sell-price').value) || 0;
+  if (!sell) { resetDisplay(); return; }
+
+  const kFee  = feeOn.kream  ? Math.round(sell * cfg.kream  / 100) : 0;
+  const sFee  = feeOn.settle ? Math.round(sell * cfg.settle / 100) : 0;
+  const shFee = feeOn.ship   ? cfg.ship : 0;
+  const net   = sell - kFee - sFee - shFee;
+  const profit = net - buy;
+  const margin = buy > 0 ? Math.round(profit / buy * 100) : null;
+
+  // fee amounts
+  document.getElementById('fa-kream').textContent  = feeOn.kream  ? fmt(kFee,true)  : '제외';
+  document.getElementById('fa-settle').textContent = feeOn.settle ? fmt(sFee,true)  : '제외';
+  document.getElementById('fa-ship').textContent   = feeOn.ship   ? fmt(shFee,true) : '제외';
+  ['fa-kream','fa-settle','fa-ship'].forEach(id => {
+    document.getElementById(id).className = 'fee-amount' + (document.getElementById(id).textContent !== '제외' ? ' active' : '');
+  });
+
+  // result rows
+  setText('r-sell',  fmt(sell));
+  setText('r-kfee',  feeOn.kream  ? fmt(kFee,true)  : '제외');
+  setText('r-sfee',  feeOn.settle ? fmt(sFee,true)  : '제외');
+  setText('r-ship',  feeOn.ship   ? fmt(shFee,true) : '제외');
+  setText('r-net',   fmt(net));
+  setText('r-buy',   buy > 0 ? fmt(buy,true) : '미입력');
+
+  const pEl = document.getElementById('r-profit');
+  const mEl = document.getElementById('r-margin');
+  pEl.textContent = (profit>=0?'+':'') + fmt(profit);
+  pEl.className = 'profit-val ' + (profit>0?'pos':profit<0?'neg':'zero');
+
+  if (margin !== null) {
+    mEl.textContent = (margin>=0?'+':'') + margin + '% 마진';
+    mEl.className = 'margin-badge ' + (margin>0?'pos':margin<0?'neg':'zero');
+  } else {
+    mEl.textContent = '—';
+    mEl.className = 'margin-badge zero';
+  }
+
+  // auto-save
+  if (buy > 0 && sell > 0) autoSave(buy, sell, profit);
+}
+
+function fmt(n, minus=false) {
+  return (minus && n>0 ? '-' : '') + Math.abs(n).toLocaleString('ko-KR') + '원';
+}
+function setText(id, v) { document.getElementById(id).textContent = v; }
+
+function resetDisplay() {
+  ['fa-kream','fa-settle','fa-ship','r-sell','r-kfee','r-sfee','r-ship','r-net','r-buy'].forEach(id => {
+    document.getElementById(id).textContent = '—';
+  });
+  document.getElementById('r-profit').textContent = '— 원';
+  document.getElementById('r-profit').className = 'profit-val zero';
+  document.getElementById('r-margin').textContent = '—';
+  document.getElementById('r-margin').className = 'margin-badge zero';
+}
+
+// ── FEE TOGGLE ──
+function toggleFee(key) {
+  feeOn[key] = !feeOn[key];
+  document.getElementById('tog-' + key).classList.toggle('on', feeOn[key]);
+  calc();
+}
+
+// ── SETTINGS ──
+function saveSettings() {
+  cfg.kream  = parseFloat(document.getElementById('s-kream').value)  || 3.5;
+  cfg.settle = parseFloat(document.getElementById('s-settle').value) || 3.0;
+  cfg.ship   = parseInt(document.getElementById('s-ship').value)     || 4000;
+  localStorage.setItem('kc_cfg', JSON.stringify(cfg));
+  updateFeeDesc();
+  calc();
+}
+
+function updateFeeDesc() {
+  document.getElementById('fd-kream').textContent  = `판매가의 ${cfg.kream}%`;
+  document.getElementById('fd-settle').textContent = `판매가의 ${cfg.settle}%`;
+  document.getElementById('fd-ship').textContent   = `${cfg.ship.toLocaleString()}원`;
+}
+
+// ── HISTORY ──
+let lastKey = '';
+function autoSave(buy, sell, profit) {
+  const k = currentCode + '_' + buy + '_' + sell;
+  if (lastKey === k) return;
+  lastKey = k;
+  // 상품명 가져오기
+  const nameEl = document.getElementById('product-name');
+  const productName = nameEl ? nameEl.innerText.trim() : '';
+  const entry = { code: currentCode, productName, buy, sell, profit,
+    time: new Date().toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'numeric',minute:'numeric'}) };
+  hist = [entry, ...hist.filter(h => !(h.code===currentCode&&h.buy===buy))].slice(0,60);
+  localStorage.setItem('kc_hist', JSON.stringify(hist));
+}
+
+function renderHist() {
+  const list  = document.getElementById('hist-list');
+  const empty = document.getElementById('hist-empty');
+  if (!hist.length) { list.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  list.innerHTML = hist.map(h => `
+    <div class="hist-item" onclick="loadFromHist('${h.code}',${h.buy},${h.sell})">
+      <div style="min-width:0; flex:1;">
+        <div class="hist-code">${h.code}</div>
+        ${h.productName ? `<div style="font-size:12px;color:var(--text);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${h.productName}</div>` : ''}
+        <div class="hist-meta">${h.time} · 구매 ${h.buy.toLocaleString()}원 / 판매 ${h.sell.toLocaleString()}원</div>
+      </div>
+      <div class="chip ${h.profit>0?'pos':h.profit<0?'neg':'zero'}">
+        ${h.profit>=0?'+':''}${h.profit.toLocaleString()}원
+      </div>
+    </div>
+  `).join('');
+}
+
+function loadFromHist(code, buy, sell) {
+  switchTab('scan');
+  loadCode(code);
+  setTimeout(() => {
+    document.getElementById('buy-price').value = buy;
+    document.getElementById('sell-price').value = sell;
+    calc();
+  }, 150);
+}
+
+function clearHistory() {
+  if (!confirm('기록을 모두 삭제할까요?')) return;
+  hist = []; lastKey = '';
+  localStorage.removeItem('kc_hist');
+  renderHist();
+  toast('기록이 초기화됐어요');
+}
+
+// ── KREAM LINK ──
+function openKream() {
+  if (!currentCode) return;
+  const kw = currentKreamKeyword || currentCode;
+  window.open('https://kream.co.kr/search?keyword=' + encodeURIComponent(kw), '_blank');
+}
+
+// ── TOAST ──
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
